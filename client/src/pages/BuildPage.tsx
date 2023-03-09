@@ -1,14 +1,32 @@
-import { MdOutlineAdd } from "react-icons/md";
 import { HiChevronDown, HiChevronLeft, HiChevronRight } from "react-icons/hi2";
-import { HTMLAttributes, useState, useRef, useEffect } from "react";   
-import { Button, IconButton, SelectableButton, SelectableButtonProps } from "../components/generic";
+import { useState, useRef, useEffect } from "react";   
+import { IconButton } from "../components/generic";
 import MapCanvas from "../components/MapCanvas";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { Target } from "../redux/map";
 import { Properties } from "../components/Properties";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import { AddMode, setMode } from "../redux/map";
 
-function AddButton({ children, ...props }: SelectableButtonProps) {
-  return <SelectableButton {...props}><MdOutlineAdd className="w-6 h-6" /><p className="whitespace-nowrap">{children}</p></SelectableButton>
+
+function AddTools() {
+  const addMode = useAppSelector((state) => state.map.addMode);
+  const dispatch = useAppDispatch();
+  
+  function Option({ label, name }: { label: string, name: AddMode }) { 
+    return (
+      <button 
+        className={addMode === name ? "bg-surface2/40" : ""} 
+        onClick={() => dispatch(setMode(addMode === name ? null : name))}>
+        {label}
+      </button>
+    );
+  }
+
+  return (
+    <div className="border border-surface2 overflow-hidden rounded-lg flex flex-col divide-y divide-surface2">
+      <Option label="Road" name="road" />
+      <Option label="Rectangular Building" name="rectangular-building" />
+    </div>
+  );
 }
 
 export default function BuildPage() {
@@ -64,9 +82,7 @@ export default function BuildPage() {
         <div className="w-72 bg-crust p-3 border-r border-r-surface2 divide-y divide-surface2 flex flex-col gap-4">
           <div className="flex flex-col gap-2 justify-start">
             <h3 className="text-xl">Add</h3>
-            <AddButton>Road</AddButton>
-            <AddButton>Rectangular Building</AddButton>
-            <AddButton>Circular Building</AddButton>
+            <AddTools />
           </div>
           <Properties />
         </div> 

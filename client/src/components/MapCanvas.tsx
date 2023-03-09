@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { IMap, INode, IBuilding, Target, editNode, setHoverTarget, editBuilding, setSelection } from "../redux/map";
+import { IMap, INode, IBuilding, Target, editNode, setHoverTarget, editBuilding, setSelection, addRoad, extendRoad, addBuilding } from "../redux/map";
 
 interface Drawable {
   draw(ctx: CanvasRenderingContext2D): void; 
@@ -229,6 +229,7 @@ export default function MapCanvas({ width, height }: { width: number, height: nu
   const _map = useAppSelector((state) => state.map.map);
   const map = new Map(_map);
   const hoverTarget = useAppSelector((state) => state.map.hoverTarget);
+  const addMode = useAppSelector((state) => state.map.addMode);
   const dispatch = useAppDispatch();
 
   const [cursorStyle, setCursorStyle] = useState<CursorStyle>("cursor-default");
@@ -278,12 +279,31 @@ export default function MapCanvas({ width, height }: { width: number, height: nu
     }
 
     function mouseDownHandler(e: MouseEvent) {
+      setHolding(true);
+      
       if (hoverTarget) {
         dispatch(setSelection(hoverTarget));
       } else {
         dispatch(setSelection());
       }
-      setHolding(true);
+
+      if (addMode === "road") {
+        if (hoverTarget?.type === "node") {
+          dispatch(extendRoad({ nodeIndex: hoverTarget.index }));  
+        } else {
+          dispatch(addRoad({x: e.offsetX, y: e.offsetY, focus: true}));
+        }
+        return;
+      } else if (addMode === "rectangular-building") {
+        dispatch(addBuilding({
+          type: "rectangular",
+          x: e.offsetX,
+          y: e.offsetY,
+          width: 50,
+          height: 50,
+          rotation: 0,
+        }));
+      }
     }
 
     function mouseUpHandler(e: MouseEvent) {
