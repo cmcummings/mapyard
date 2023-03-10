@@ -1,4 +1,37 @@
-import { HTMLAttributes } from "react";
+import { FormEvent, HTMLAttributes, useRef, useState } from "react";
+import { MdEdit } from "react-icons/md";
+
+export function EditableText({ text, setText }: { text: string, setText: (t: string) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [inputText, setInputText] = useState(text);
+
+  const inputRef = useRef(null);
+
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (inputText === "") {
+      setInputText(text);
+    } else {
+      setText(inputText);
+    }
+    setEditing(false);
+  }
+
+  return (
+    <div className="group">
+      <form className={editing ? "inline" : "hidden"} onSubmit={onSubmit}>
+        <input ref={inputRef} className="bg-surface0/50 focus:outline-none text-center" value={inputText} onChange={(e) => setInputText(e.currentTarget.value)} />
+      </form>
+      {editing ? <></> :
+      <div className="flex flex-row gap-2 relative hover:cursor-pointer"
+          onClick={() => { setEditing(true); if (inputRef.current) { inputRef.current.focus() } }} >
+        <h2>{text}</h2>
+        <button className="hidden group-hover:inline absolute left-full"><MdEdit className="w-6 h-6" /></button>
+      </div>}
+    </div>
+  );
+}
+
 
 type ButtonProps = HTMLAttributes<HTMLButtonElement>;
 

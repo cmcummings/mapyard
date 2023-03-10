@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { IMap, INode, IBuilding, Target, editNode, setHoverTarget, editBuilding, setSelection, addRoad, extendRoad, addBuilding } from "../redux/map";
+import { IMap, INode, IBuilding, Target, editNode, setHoverTarget, editBuilding, setSelection, addRoad, extendRoad, addBuilding, RoadDirection } from "../redux/map";
 
 interface Drawable {
   draw(ctx: CanvasRenderingContext2D): void; 
@@ -45,32 +45,71 @@ class Node implements Hoverable {
   }
 }
 
-
 class Road implements Drawable, Hoverable {
   static COLOR = "#ccd0da";
+  static ARROW_COLOR = "#acb0be";
   static HOVER_COLOR = "#04a5e533";
 
   id: number
   start: INode
   end: INode
+  direction: RoadDirection
   path: Path2D
 
-  constructor(id: number, start: INode, end: INode) {
+  constructor(id: number, start: INode, end: INode, direction: RoadDirection) {
     this.start = start;
     this.end = end;
     this.id = id;
+    this.direction = direction;
     
     this.path = new Path2D();
     this.path.moveTo(start.x, start.y);
     this.path.lineTo(end.x, end.y);
   }
 
+  private drawPath(ctx: CanvasRenderingContext2D) {
+    ctx.beginPath();
+    ctx.stroke(this.path);
+    if (this.direction === "none") return;
+
+    // Draw arrow 
+    const midX = (this.start.x + this.end.x)/2;
+    const midY = (this.start.y + this.end.y)/2;
+    const angle = Math.atan2(this.end.y - this.start.y, this.end.x - this.start.x);
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = Road.ARROW_COLOR;
+    ctx.resetTransform();
+    ctx.translate(midX, midY);
+    ctx.rotate(angle);
+    ctx.translate(-midX, -midY);
+    
+    if (this.direction === "forward") {
+      ctx.moveTo(midX - 15, midY);
+      ctx.lineTo(midX + 13, midY);
+      ctx.moveTo(midX + 15, midY);
+      ctx.lineTo(midX + 5, midY + 4);
+      ctx.moveTo(midX + 15, midY);
+      ctx.lineTo(midX + 5, midY - 4); 
+    } else {
+      ctx.moveTo(midX + 15, midY);
+      ctx.lineTo(midX - 13, midY);
+      ctx.moveTo(midX - 15, midY);
+      ctx.lineTo(midX - 5, midY + 4);
+      ctx.moveTo(midX - 15, midY);
+      ctx.lineTo(midX - 5, midY - 4); 
+    }
+
+    ctx.stroke();
+    ctx.resetTransform();
+  }
+
   draw(ctx: CanvasRenderingContext2D): void {
     ctx.lineWidth = 10;
     ctx.lineCap = "round";
     ctx.strokeStyle = Road.COLOR;
-    ctx.beginPath();
-    ctx.stroke(this.path);
+    ctx.fillStyle = Road.COLOR;
+    this.drawPath(ctx);
   } 
 
   getTarget(mouseX: number, mouseY: number, ctx: CanvasRenderingContext2D): Target | undefined {
@@ -86,8 +125,8 @@ class Road implements Drawable, Hoverable {
     ctx.lineWidth = 10;
     ctx.lineCap = "round";
     ctx.strokeStyle = Road.HOVER_COLOR;
-    ctx.beginPath();
-    ctx.stroke(this.path);
+    ctx.fillStyle = Road.COLOR;
+    this.drawPath(ctx);
   }
 }
 
@@ -108,6 +147,8 @@ class Building implements Drawable, Hoverable {
     this.path = new Path2D();
     if (this.building.type === "rectangular") {
       this.path.rect(this.building.x - this.building.width/2, this.building.y - this.building.height/2, this.building.width, this.building.height);
+    } else if (this.building.type === "circular") {
+      this.path.arc(this.building.x, this.building.y, this.building.radius, 0, 2*Math.PI);
     }
   }
 
@@ -170,7 +211,7 @@ class Map {
       const road = map.roads[i];
       const start = map.nodes[road.start];
       const end = map.nodes[road.end];
-      this.roads.push(new Road(i, start, end));
+      this.roads.push(new Road(i, start, end, road.direction));
     }
     
     this.buildings = [];
@@ -279,6 +320,9 @@ export default function MapCanvas({ width, height }: { width: number, height: nu
     }
 
     function mouseDownHandler(e: MouseEvent) {
+      const x = e.offsetX;
+      const y = e.offsetY;
+
       setHolding(true);
       
       if (hoverTarget) {
@@ -291,17 +335,24 @@ export default function MapCanvas({ width, height }: { width: number, height: nu
         if (hoverTarget?.type === "node") {
           dispatch(extendRoad({ nodeIndex: hoverTarget.index }));  
         } else {
-          dispatch(addRoad({x: e.offsetX, y: e.offsetY, focus: true}));
+          dispatch(addRoad({x: x, y: y, focus: true}));
         }
         return;
       } else if (addMode === "rectangular-building") {
         dispatch(addBuilding({
           type: "rectangular",
-          x: e.offsetX,
-          y: e.offsetY,
+          x: x,
+          y: y,
           width: 50,
           height: 50,
           rotation: 0,
+        }));
+      } else if (addMode === "circular-building") {
+        dispatch(addBuilding({
+          type: "circular",
+          x: x,
+          y: y,
+          radius: 25
         }));
       }
     }
@@ -321,5 +372,7 @@ export default function MapCanvas({ width, height }: { width: number, height: nu
     }
   }, [map, hoverTarget, holding, width, height]);
 
-  return <canvas className={cursorStyle} ref={canvasRef} width={width} height={height} />
+  return (
+      <canvas className={cursorStyle} ref={canvasRef} width={width} height={height} />
+  );
 }

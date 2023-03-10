@@ -1,10 +1,15 @@
-import { FormEvent, InputHTMLAttributes, ReactNode } from "react";
+import { FormEvent, HTMLAttributes } from "react";
 import { useAppSelector, useAppDispatch } from "../redux/hooks";
-import { BuildingEdits, editBuilding, IBuilding } from "../redux/map";
+import { BuildingEdits, editBuilding, editRoad, INode, IBuilding, IRoad, RoadDirection } from "../redux/map";
 import { degToRad, parseIntSafe, radToDeg } from "../util";
+import { InputHTMLAttributes, ReactNode } from "react";
 
 function FieldInput({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={"bg-transparent border border-surface2 focus:outline-sky outline-offset-0 outline-none rounded-md p-1 appearance-none  " + className} {...props} />
+}
+
+function FieldSelect({ className, ...props }: InputHTMLAttributes<HTMLSelectElement>) {
+  return <select className={"bg-transparent border border-surface2 p-1 " + className} {...props} />
 }
 
 function Field({ label, children }: { label: string, children: ReactNode }) {
@@ -16,11 +21,17 @@ function Field({ label, children }: { label: string, children: ReactNode }) {
   );
 }
 
-type BuildingFieldProps = { id: number, building: IBuilding };
+function FieldsContainer(props: HTMLAttributes<HTMLDivElement>) {
+  return <div className="flex flex-col gap-4" {...props} />
+}
 
-function RectangularBuildingFields({ id, building }: BuildingFieldProps) {
-  if (building.type !== "rectangular") return <></>;
-  
+function FieldsHeading({ text }: { text: string }) {
+  return <h3 className="text-xl">{text}</h3>;
+}
+
+type BuildingFieldsProps = { id: number, building: IBuilding };
+
+function BuildingFields({ id, building }: BuildingFieldsProps) { 
   const dispatch = useAppDispatch();  
 
   function edit(fun: (val: string) => BuildingEdits) {
@@ -31,34 +42,86 @@ function RectangularBuildingFields({ id, building }: BuildingFieldProps) {
       }));
     }
   }
-  
-  if (building.type === "rectangular") {
-    return <div className="flex flex-col gap-4">
-      <h3 className="text-xl">Building</h3>
-      <Field label="X Position">
-        <FieldInput type="number" value={building.x} onChange={edit((v) => ({ x: parseIntSafe(v) }))} />
-      </Field>
-      <Field label="Y Position">
-        <FieldInput type="number" value={building.y} onChange={edit((v) => ({ y: parseIntSafe(v) }))}/>
-      </Field>
-      <Field label="Rotation (degrees)">
-        <FieldInput type="number" value={radToDeg(building.rotation)} onChange={edit((v) => ({ rotation: degToRad(parseIntSafe(v)) }))}/>
-      </Field>
-      <Field label="Width">
-        <FieldInput type="number" value={building.width} onChange={edit((v) => ({ width: parseIntSafe(v) }))}/>
-      </Field>
-      <Field label="Height">
-        <FieldInput type="number" value={building.height} onChange={edit((v) => ({ height: parseIntSafe(v) }))}/>
-      </Field>
-    </div>
+ 
+  let shapeFields;
+
+  switch (building.type) {
+    case "rectangular":
+      shapeFields = <>
+        <Field label="Rotation (degrees)">
+          <FieldInput type="number" value={radToDeg(building.rotation).toString()} onChange={edit((v) => ({ rotation: degToRad(parseIntSafe(v)) }))}/>
+        </Field>
+        <Field label="Width">
+          <FieldInput type="number" value={building.width.toString()} onChange={edit((v) => ({ width: parseIntSafe(v) }))}/>
+        </Field>
+        <Field label="Height">
+          <FieldInput type="number" value={building.height.toString()} onChange={edit((v) => ({ height: parseIntSafe(v) }))}/>
+        </Field>
+      </>;
+      break;
+    case "circular":
+      shapeFields = <>
+        <Field label="Radius">
+          <FieldInput type="number" value={building.radius.toString()} onChange={edit((v) => ({ radius: parseIntSafe(v) }))}/>
+        </Field>
+      </>;
   }
 
-  return <></>
+  return <FieldsContainer>
+    <FieldsHeading text="Building" />
+    <Field label="X Position">
+      <FieldInput type="number" value={building.x.toString()} onChange={edit((v) => ({ x: parseIntSafe(v) }))} />
+    </Field>
+    <Field label="Y Position">
+      <FieldInput type="number" value={building.y.toString()} onChange={edit((v) => ({ y: parseIntSafe(v) }))}/>
+    </Field>
+    {shapeFields}
+  </FieldsContainer>
 }
 
-function BuildingFields({ id, building }: BuildingFieldProps) { 
-  if (building.type === "rectangular") return <RectangularBuildingFields id={id} building={building} />;
-  return <></>;
+function RoadFields({ id, road }: { id: number, road: IRoad }) {
+  const dispatch = useAppDispatch();
+
+  return (
+    <FieldsContainer>
+      <FieldsHeading text="Road" />
+      <Field label="Direction">
+        <FieldSelect value={road.direction} onChange={(e) => {
+          const res = e.currentTarget.value;
+          dispatch(editRoad({ index: id, edits: { direction: res as RoadDirection }}))
+        }}>
+          <option value="forward">Forward</option>
+          <option value="backward">Backward</option>
+          <option value="none">None</option>
+        </FieldSelect>
+      </Field>
+    </FieldsContainer>
+  );
+}
+
+function NodeFields({ id, node }: { id: number, node: INode }) {
+  const dispatch = useAppDispatch();
+
+  function edit(fun: (val: string) => BuildingEdits) {
+    return (e: FormEvent<HTMLInputElement>) => {
+      dispatch(editBuilding({
+        index: id,
+        edits: fun(e.currentTarget.value)
+      }));
+    }
+  }
+
+  return (
+    <FieldsContainer>
+      <FieldsHeading text="Node" />
+      <Field label="Position X">
+        <FieldInput type="number" value={node.x.toString()} onChange={edit((v) => ({ x: parseIntSafe(v) }))} />
+      </Field>
+      <Field label="Position Y">
+        <FieldInput type="number" value={node.y.toString()} onChange={edit((v) => ({ y: parseIntSafe(v) }))} />
+      </Field>
+    </FieldsContainer>
+  );
 }
 
 export function Properties() {
@@ -72,6 +135,12 @@ export function Properties() {
     case "building":
       fields = <BuildingFields id={selection.index} building={mapState.buildings[selection.index]} />;
       break; 
+    case "road":
+      fields = <RoadFields id={selection.index} road={mapState.roads[selection.index]} />;
+      break;
+    case "node":
+      fields = <NodeFields id={selection.index} node={mapState.nodes[selection.index]} />;
+      break;
   }
 
   return (
@@ -80,3 +149,5 @@ export function Properties() {
     </div>
   );
 }
+
+

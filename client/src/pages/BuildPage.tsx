@@ -1,10 +1,10 @@
 import { HiChevronDown, HiChevronLeft, HiChevronRight } from "react-icons/hi2";
 import { useState, useRef, useEffect } from "react";   
-import { IconButton } from "../components/generic";
+import { EditableText, IconButton } from "../components/generic";
 import MapCanvas from "../components/MapCanvas";
 import { Properties } from "../components/Properties";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { AddMode, setMode } from "../redux/map";
+import { AddMode, setMode, setName } from "../redux/map";
 
 
 function AddTools() {
@@ -14,7 +14,7 @@ function AddTools() {
   function Option({ label, name }: { label: string, name: AddMode }) { 
     return (
       <button 
-        className={addMode === name ? "bg-surface2/40" : ""} 
+        className={"hover:bg-surface2/25 px-4 py-2 " + (addMode === name ? "bg-surface2/40" : "")} 
         onClick={() => dispatch(setMode(addMode === name ? null : name))}>
         {label}
       </button>
@@ -25,6 +25,7 @@ function AddTools() {
     <div className="border border-surface2 overflow-hidden rounded-lg flex flex-col divide-y divide-surface2">
       <Option label="Road" name="road" />
       <Option label="Rectangular Building" name="rectangular-building" />
+      <Option label="Circular Building" name="circular-building" />
     </div>
   );
 }
@@ -32,6 +33,8 @@ function AddTools() {
 export default function BuildPage() {
   const mapRef = useRef<HTMLDivElement>(null);
 
+  const dispatch = useAppDispatch();
+  const mapName = useAppSelector((state) => state.map.name);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mapSize, setMapSize] = useState<[number, number]>([0, 0]);
 
@@ -55,7 +58,7 @@ export default function BuildPage() {
     }
   }, []);
 
-  return (<div className="h-screen flex flex-col">
+  return (<div className="h-screen overflow-hidden flex flex-col">
     {/* Topbar */}
     <div className="p-2 bg-mantle border-b border-b-surface2 flex flex-row">
       <div className="grow flex items-center flex-row gap-2">
@@ -67,7 +70,7 @@ export default function BuildPage() {
         <p>Editor</p>
       </div>
       <div className="grow flex justify-center items-center">
-        <h2>Map Name</h2>
+        <EditableText text={mapName} setText={(t) => dispatch(setName(t))} />
       </div>
       <div className="grow justify-end flex flex-row gap-2 items-center">
         <h2>Username</h2>

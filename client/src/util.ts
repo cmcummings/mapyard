@@ -1,6 +1,6 @@
 
 export function parseIntSafe(s: string) {
-  return parseInt(s) || 0;
+  return parseInt(s, 10) || 0;
 }
 
 export function radToDeg(rad: number) {

@@ -6,9 +6,12 @@ export interface INode {
   y: number
 }
 
+export type RoadDirection = "forward" | "backward" | "none";
+
 export interface IRoad {
   start: number,
-  end: number
+  end: number,
+  direction: RoadDirection
 }
 
 export type IBuilding = {
@@ -38,10 +41,11 @@ export interface Target {
   index: number 
 }
 
-export type AddMode = "road" | "rectangular-building";
+export type AddMode = "road" | "rectangular-building" | "circular-building";
 
 interface MapState {
   map: IMap,
+  name: string,
   hoverTarget?: Target,
   selection?: Target,
   addMode?: AddMode | null
@@ -54,12 +58,13 @@ const node4 = { x: 200, y: 200 }
 const node5 = { x: 250, y: 200 }
 
 const initialState: MapState = {
+  name: "Map",
   map: {
     nodes: [node1, node2, node3, node4, node5],
     roads: [
-      { start: 0, end: 1 },
-      { start: 1, end: 2 },
-      { start: 3, end: 4 }
+      { start: 0, end: 1, direction: "forward" },
+      { start: 1, end: 2, direction: "backward" },
+      { start: 3, end: 4, direction: "none" }
     ],
     buildings: [
       { 
@@ -79,18 +84,26 @@ export interface NodeEdits {
   y?: number
 }
 
+export interface RoadEdits {
+  direction?: RoadDirection
+}
+
 export interface BuildingEdits {
   x?: number,
   y?: number,
   rotation?: number,
   width?: number,
-  height?: number
+  height?: number,
+  radius?: number
 }
 
 export const mapSlice = createSlice({
   name: "map",
   initialState, 
   reducers: {
+    setName: (state, action: PayloadAction<string>) => {
+      state.name = action.payload;
+    },
     setMode: (state, action: PayloadAction<AddMode | null>) => {
       state.addMode = action.payload;
     },
@@ -100,12 +113,17 @@ export const mapSlice = createSlice({
     setSelection: (state, action: PayloadAction<Target | undefined>) => {
       state.selection = action.payload;
     },
+    editRoad: (state, action: PayloadAction<{ index: number, edits: RoadEdits }>) => {
+      const { index, edits } = action.payload;
+      const road = state.map.roads[index];
+      state.map.roads[index] = Object.assign(road, edits); 
+    },
     addRoad: (state, action: PayloadAction<{ x: number, y: number, focus?: boolean }>) => {
       const { x, y, focus } = action.payload;
       const start: INode = { x: x, y: y };
       const end: INode = { x: x, y: y };
       const len = state.map.nodes.push(start, end);
-      const road: IRoad = { start: len - 2, end: len - 1 }; 
+      const road: IRoad = { start: len - 2, end: len - 1, direction: "none" }; 
       state.map.roads.push(road);
 
       if (focus) {
@@ -123,7 +141,7 @@ export const mapSlice = createSlice({
       const node = state.map.nodes[nodeIndex];
       const end: INode = { x: node.x, y: node.y };
       const len = state.map.nodes.push(end);
-      const road: IRoad = { start: nodeIndex, end: len - 1 };
+      const road: IRoad = { start: nodeIndex, end: len - 1, direction: "none" };
       state.map.roads.push(road);
 
       mapSlice.caseReducers.setHoverTarget(state, {
@@ -155,5 +173,5 @@ export const mapSlice = createSlice({
 
 const mapReducer = mapSlice.reducer;
 
-export const { setMode, setHoverTarget, setSelection, addRoad, addBuilding, extendRoad, editNode, editBuilding } = mapSlice.actions;
+export const { setName, setMode, setHoverTarget, setSelection, editRoad, addRoad, addBuilding, extendRoad, editNode, editBuilding } = mapSlice.actions;
 export default mapReducer;
