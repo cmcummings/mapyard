@@ -91,7 +91,7 @@ export default function BuildPage() {
         </div> 
         : <></>}
       {/* Map Canvas */}
-      <div className="grow overflow-hidden" ref={mapRef}>
+      <div className="relative grow overflow-hidden" ref={mapRef}>
         <MapCanvas width={mapSize[0]} height={mapSize[1]} />         
       </div>
     </div>

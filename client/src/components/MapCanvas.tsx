@@ -263,6 +263,7 @@ class Map {
 }
 
 type CursorStyle = "cursor-pointer" | "cursor-default";
+type CursorPosition = { x: number, y: number };
 
 export default function MapCanvas({ width, height }: { width: number, height: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -276,6 +277,8 @@ export default function MapCanvas({ width, height }: { width: number, height: nu
   const [cursorStyle, setCursorStyle] = useState<CursorStyle>("cursor-default");
   const [holding, setHolding] = useState(false);
 
+  const [cursorPos, setCursorPos] = useState<CursorPosition>({ x: 0, y: 0 });
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -287,22 +290,27 @@ export default function MapCanvas({ width, height }: { width: number, height: nu
     map.draw(ctx, hoverTarget); 
 
     function mouseMoveHandler(e: MouseEvent) {
+      const x = e.offsetX;
+      const y = e.offsetY;
+
+      setCursorPos({ x: x, y: y });
+
       if (holding) {
         if (!hoverTarget) return;
         if (hoverTarget.type === "node") {
           dispatch(editNode({
             index: hoverTarget.index,
             edits: {
-              x: e.offsetX,
-              y: e.offsetY
+              x: x,
+              y: y
             }
           }));
         } else if (hoverTarget.type === "building") {
           dispatch(editBuilding({
             index: hoverTarget.index,
             edits: {
-              x: e.offsetX,
-              y: e.offsetY
+              x: x,
+              y: y
             }
           }));
         }
@@ -372,7 +380,12 @@ export default function MapCanvas({ width, height }: { width: number, height: nu
     }
   }, [map, hoverTarget, holding, width, height]);
 
-  return (
+  return (<>
+      <div className="absolute top-2 left-2 flex flex-col gap-2">
+        <div className="p-2 rounded-lg bg-crust border border-overlay0">
+          <p>{cursorPos.x}, {cursorPos.y}</p>
+        </div>
+      </div>
       <canvas className={cursorStyle} ref={canvasRef} width={width} height={height} />
-  );
+  </>);
 }
