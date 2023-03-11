@@ -11,7 +11,8 @@ export type RoadDirection = "forward" | "backward" | "none";
 export interface IRoad {
   start: number,
   end: number,
-  direction: RoadDirection
+  direction: RoadDirection,
+  label?: string
 }
 
 export type IBuilding = {
@@ -51,7 +52,7 @@ interface MapState {
   addMode?: AddMode | null
 }
 
-const node1 = { x: 20, y: 20 }
+const node1 = { x: 100, y: 20 }
 const node2 = { x: 100, y: 100 }
 const node3 = { x: 50, y: 150 }
 const node4 = { x: 200, y: 200 }
@@ -64,7 +65,7 @@ const initialState: MapState = {
     roads: [
       { start: 0, end: 1, direction: "forward" },
       { start: 1, end: 2, direction: "backward" },
-      { start: 3, end: 4, direction: "none" }
+      { start: 3, end: 4, direction: "none", label: "Test St." }
     ],
     buildings: [
       { 
@@ -85,7 +86,8 @@ export interface NodeEdits {
 }
 
 export interface RoadEdits {
-  direction?: RoadDirection
+  direction?: RoadDirection,
+  label?: string
 }
 
 export interface BuildingEdits {

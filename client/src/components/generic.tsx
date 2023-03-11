@@ -24,7 +24,7 @@ export function EditableText({ text, setText }: { text: string, setText: (t: str
       </form>
       {editing ? <></> :
       <div className="flex flex-row gap-2 relative hover:cursor-pointer"
-          onClick={() => { setEditing(true); if (inputRef.current) { inputRef.current.focus() } }} >
+          onClick={() => { setEditing(true); }} >
         <h2>{text}</h2>
         <button className="hidden group-hover:inline absolute left-full"><MdEdit className="w-6 h-6" /></button>
       </div>}

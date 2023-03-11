@@ -5,6 +5,7 @@ import MapCanvas from "../components/MapCanvas";
 import { Properties } from "../components/Properties";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { AddMode, setMode, setName } from "../redux/map";
+import { Link } from "react-router-dom";
 
 
 function AddTools() {
@@ -29,6 +30,25 @@ function AddTools() {
     </div>
   );
 }
+
+
+function UserDropdown() {
+  const [open, setOpen] = useState(false);
+
+  return (<div className="relative">
+    <IconButton onClick={() => setOpen(s => !s)}>
+      <HiChevronDown className="w-6 h-6" />
+    </IconButton>
+    {open 
+    ?
+    <div className="z-10 absolute right-0 bg-mantle rounded-md border border-surface2 p-3 flex flex-col gap-3 text-right">
+      <Link to="/user" className="hover:underline whitespace-nowrap">View your maps</Link>
+      <a className="hover:underline hover:cursor-pointer">Logout</a>      
+    </div> 
+    : <></>}
+  </div>);
+}
+
 
 export default function BuildPage() {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -74,9 +94,7 @@ export default function BuildPage() {
       </div>
       <div className="grow justify-end flex flex-row gap-2 items-center">
         <h2>Username</h2>
-        <IconButton>
-          <HiChevronDown className="w-6 h-6" />
-        </IconButton>
+        <UserDropdown />
       </div>
     </div>
     <div className="flex flex-row grow"> 

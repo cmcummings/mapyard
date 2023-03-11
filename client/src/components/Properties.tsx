@@ -1,6 +1,6 @@
-import { FormEvent, HTMLAttributes } from "react";
+import { ChangeEvent, FormEvent, HTMLAttributes } from "react";
 import { useAppSelector, useAppDispatch } from "../redux/hooks";
-import { BuildingEdits, editBuilding, editRoad, INode, IBuilding, IRoad, RoadDirection } from "../redux/map";
+import { BuildingEdits, editBuilding, editRoad, INode, IBuilding, IRoad, RoadDirection, RoadEdits } from "../redux/map";
 import { degToRad, parseIntSafe, radToDeg } from "../util";
 import { InputHTMLAttributes, ReactNode } from "react";
 
@@ -82,18 +82,27 @@ function BuildingFields({ id, building }: BuildingFieldsProps) {
 function RoadFields({ id, road }: { id: number, road: IRoad }) {
   const dispatch = useAppDispatch();
 
+  function edit(fun: (val: string) => RoadEdits) {
+    return (e: FormEvent<HTMLInputElement> | ChangeEvent<HTMLSelectElement>) => {
+      dispatch(editRoad({
+        index: id,
+        edits: fun(e.currentTarget.value)
+      }));
+    }
+  }
+  
   return (
     <FieldsContainer>
       <FieldsHeading text="Road" />
       <Field label="Direction">
-        <FieldSelect value={road.direction} onChange={(e) => {
-          const res = e.currentTarget.value;
-          dispatch(editRoad({ index: id, edits: { direction: res as RoadDirection }}))
-        }}>
+        <FieldSelect value={road.direction} onChange={edit((v) => ({ direction: v as RoadDirection }))}>
           <option value="forward">Forward</option>
           <option value="backward">Backward</option>
           <option value="none">None</option>
         </FieldSelect>
+      </Field>
+      <Field label="Label">
+        <FieldInput type="text" value={road.label} onChange={edit((v) => ({ label: v }))} />
       </Field>
     </FieldsContainer>
   );

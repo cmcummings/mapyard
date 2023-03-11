@@ -1,13 +1,17 @@
 import { useEffect, useRef, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { IMap, INode, IBuilding, Target, editNode, setHoverTarget, editBuilding, setSelection, addRoad, extendRoad, addBuilding, RoadDirection } from "../redux/map";
+import { IMap, INode, IBuilding, IRoad, Target, editNode, setHoverTarget, editBuilding, setSelection, addRoad, extendRoad, addBuilding, RoadDirection } from "../redux/map";
 
 interface Drawable {
+  // Draws a plain version of the object
   draw(ctx: CanvasRenderingContext2D): void; 
 }
 
 interface Hoverable {
+  // Checks if (mouseX, mouseY) is within the object's bounds and returns a Target if so
   getTarget(mouseX: number, mouseY: number, ctx: CanvasRenderingContext2D): Target | undefined;
+  
+  // Draws the object with hovered effects
   drawHovered(ctx: CanvasRenderingContext2D): void;
 }
 
@@ -48,68 +52,90 @@ class Node implements Hoverable {
 class Road implements Drawable, Hoverable {
   static COLOR = "#ccd0da";
   static ARROW_COLOR = "#acb0be";
+  static LABEL_COLOR = "#acb0be";
   static HOVER_COLOR = "#04a5e533";
+  static HOVER_ARROW_COLOR = "#04a5e522";
+  static HOVER_LABEL_COLOR = "#04a5e522";
 
   id: number
   start: INode
   end: INode
-  direction: RoadDirection
+  road: IRoad
   path: Path2D
 
-  constructor(id: number, start: INode, end: INode, direction: RoadDirection) {
+  constructor(id: number, start: INode, end: INode, road: IRoad) {
     this.start = start;
     this.end = end;
     this.id = id;
-    this.direction = direction;
+    this.road = road;
     
     this.path = new Path2D();
     this.path.moveTo(start.x, start.y);
     this.path.lineTo(end.x, end.y);
   }
 
-  private drawPath(ctx: CanvasRenderingContext2D) {
+  private drawPath(ctx: CanvasRenderingContext2D, pathColor: string, arrowColor: string, labelColor: string) {
     ctx.beginPath();
+    ctx.strokeStyle = pathColor;
+    ctx.fillStyle = pathColor;
+    ctx.lineWidth = 10;
+    ctx.lineCap = "round";
     ctx.stroke(this.path);
-    if (this.direction === "none") return;
-
+    
     // Draw arrow 
     const midX = (this.start.x + this.end.x)/2;
     const midY = (this.start.y + this.end.y)/2;
     const angle = Math.atan2(this.end.y - this.start.y, this.end.x - this.start.x);
-    ctx.lineWidth = 2;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = Road.ARROW_COLOR;
+
     ctx.resetTransform();
     ctx.translate(midX, midY);
     ctx.rotate(angle);
     ctx.translate(-midX, -midY);
-    
-    if (this.direction === "forward") {
-      ctx.moveTo(midX - 15, midY);
-      ctx.lineTo(midX + 13, midY);
-      ctx.moveTo(midX + 15, midY);
-      ctx.lineTo(midX + 5, midY + 4);
-      ctx.moveTo(midX + 15, midY);
-      ctx.lineTo(midX + 5, midY - 4); 
-    } else {
-      ctx.moveTo(midX + 15, midY);
-      ctx.lineTo(midX - 13, midY);
-      ctx.moveTo(midX - 15, midY);
-      ctx.lineTo(midX - 5, midY + 4);
-      ctx.moveTo(midX - 15, midY);
-      ctx.lineTo(midX - 5, midY - 4); 
+
+    if (this.road.direction != "none") {  
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      ctx.strokeStyle = arrowColor;
+
+      if (this.road.direction === "forward") {
+        ctx.moveTo(midX - 15, midY);
+        ctx.lineTo(midX + 13, midY);
+        ctx.moveTo(midX + 15, midY);
+        ctx.lineTo(midX + 5, midY + 4);
+        ctx.moveTo(midX + 15, midY);
+        ctx.lineTo(midX + 5, midY - 4); 
+      } else {
+        ctx.moveTo(midX + 15, midY);
+        ctx.lineTo(midX - 13, midY);
+        ctx.moveTo(midX - 15, midY);
+        ctx.lineTo(midX - 5, midY + 4);
+        ctx.moveTo(midX - 15, midY);
+        ctx.lineTo(midX - 5, midY - 4); 
+      }
+
+      ctx.stroke();
+    }
+ 
+    // Draw label
+    if (this.road.label) {
+      if (angle < -Math.PI/2 || angle > Math.PI/2) {
+        ctx.resetTransform();
+        ctx.translate(midX, midY);
+        ctx.rotate(angle + Math.PI);
+        ctx.translate(-midX, -midY);
+      }
+      ctx.fillStyle = labelColor;
+      ctx.font = "14px sans";
+      ctx.moveTo(midX, midY);
+      ctx.textAlign = "center";
+      ctx.fillText(this.road.label, midX, midY - 8);
     }
 
-    ctx.stroke();
     ctx.resetTransform();
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
-    ctx.lineWidth = 10;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = Road.COLOR;
-    ctx.fillStyle = Road.COLOR;
-    this.drawPath(ctx);
+    this.drawPath(ctx, Road.COLOR, Road.ARROW_COLOR, Road.LABEL_COLOR);
   } 
 
   getTarget(mouseX: number, mouseY: number, ctx: CanvasRenderingContext2D): Target | undefined {
@@ -122,11 +148,7 @@ class Road implements Drawable, Hoverable {
   }
 
   drawHovered(ctx: CanvasRenderingContext2D): void { 
-    ctx.lineWidth = 10;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = Road.HOVER_COLOR;
-    ctx.fillStyle = Road.COLOR;
-    this.drawPath(ctx);
+    this.drawPath(ctx, Road.HOVER_COLOR, Road.HOVER_ARROW_COLOR, Road.HOVER_LABEL_COLOR);
   }
 }
 
@@ -211,7 +233,7 @@ class Map {
       const road = map.roads[i];
       const start = map.nodes[road.start];
       const end = map.nodes[road.end];
-      this.roads.push(new Road(i, start, end, road.direction));
+      this.roads.push(new Road(i, start, end, road));
     }
     
     this.buildings = [];
