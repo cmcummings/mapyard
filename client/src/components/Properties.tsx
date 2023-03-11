@@ -102,7 +102,7 @@ function RoadFields({ id, road }: { id: number, road: IRoad }) {
         </FieldSelect>
       </Field>
       <Field label="Label">
-        <FieldInput type="text" value={road.label} onChange={edit((v) => ({ label: v }))} />
+        <FieldInput type="text" value={road.label || ""} onChange={edit((v) => ({ label: v }))} />
       </Field>
     </FieldsContainer>
   );
