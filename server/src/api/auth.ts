@@ -43,7 +43,7 @@ auth.post("/register", async (req, res, next) => {
         return;
       }
 
-      res.status(200).send();
+      res.json({ username: user.name });
     });
   });
 });
@@ -84,13 +84,13 @@ auth.post("/login", async (req, res, next) => {
         return;
       }
 
-      res.status(200).send();
+      res.json({ username: user.name });
     });
   });
 });
 
 
-auth.post("/logout", (req, res, next) => {
+auth.post("/logout", async (req, res, next) => {
   if (!req.session.user) {
     res.status(401).json({ message: "Not logged in." });
     return;

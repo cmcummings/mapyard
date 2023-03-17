@@ -52,31 +52,12 @@ interface MapState {
   addMode?: AddMode | null
 }
 
-const node1 = { x: 100, y: 20 }
-const node2 = { x: 100, y: 100 }
-const node3 = { x: 50, y: 150 }
-const node4 = { x: 200, y: 200 }
-const node5 = { x: 250, y: 200 }
-
 const initialState: MapState = {
-  name: "Map",
+  name: "Untitled",
   map: {
-    nodes: [node1, node2, node3, node4, node5],
-    roads: [
-      { start: 0, end: 1, direction: "forward" },
-      { start: 1, end: 2, direction: "backward" },
-      { start: 3, end: 4, direction: "none", label: "Test St." }
-    ],
-    buildings: [
-      { 
-        type: "rectangular",
-        x: 300,
-        y: 300,
-        width: 40,
-        height: 70,
-        rotation: Math.PI/4
-      }
-    ]
+    nodes: [],
+    roads: [],
+    buildings: []
   }
 }
 
@@ -99,10 +80,23 @@ export interface BuildingEdits {
   radius?: number
 }
 
+interface LoadMap {
+  name: string,
+  objects: IMap
+}
+
 export const mapSlice = createSlice({
   name: "map",
   initialState, 
   reducers: {
+    load: (state, action: PayloadAction<LoadMap>) => {
+      const p = action.payload;
+      state.name = p.name;
+      state.map = p.objects;
+      state.addMode = undefined;
+      state.selection = undefined
+      state.hoverTarget = undefined;
+    },
     setName: (state, action: PayloadAction<string>) => {
       state.name = action.payload;
     },
@@ -175,5 +169,5 @@ export const mapSlice = createSlice({
 
 const mapReducer = mapSlice.reducer;
 
-export const { setName, setMode, setHoverTarget, setSelection, editRoad, addRoad, addBuilding, extendRoad, editNode, editBuilding } = mapSlice.actions;
+export const { setName, setMode, load, setHoverTarget, setSelection, editRoad, addRoad, addBuilding, extendRoad, editNode, editBuilding } = mapSlice.actions;
 export default mapReducer;

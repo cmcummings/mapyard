@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "react-query";
 import { Provider } from "react-redux";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import BuildPage from "./pages/BuildPage";
@@ -12,7 +13,7 @@ const router = createBrowserRouter([
     element: <SplashPage />
   },
   {
-    path: "build",
+    path: "build/:id",
     element: <BuildPage />
   },
   {
@@ -25,11 +26,15 @@ const router = createBrowserRouter([
   }
 ]);
 
+const queryClient = new QueryClient();
+
 function App() {
   return (
-    <Provider store={store}>
-      <RouterProvider router={router} />
-    </Provider>
+    <QueryClientProvider client={queryClient}>
+      <Provider store={store}>
+        <RouterProvider router={router} />
+      </Provider>
+    </QueryClientProvider>
   );
 }
 

@@ -1,12 +1,14 @@
-import { HiChevronDown, HiChevronLeft, HiChevronRight } from "react-icons/hi2";
+import { HiChevronLeft, HiChevronRight } from "react-icons/hi2";
 import { useState, useRef, useEffect } from "react";   
 import { EditableText, IconButton } from "../components/generic";
 import MapCanvas from "../components/MapCanvas";
 import { Properties } from "../components/Properties";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { AddMode, setMode, setName } from "../redux/map";
-import { Link } from "react-router-dom";
+import { AddMode, load, setMode, setName } from "../redux/map";
 import Navbar from "../components/Navbar";
+import axios from "axios";
+import { useQuery } from "react-query";
+import { useParams } from "react-router-dom";
 
 
 function AddTools() {
@@ -36,6 +38,11 @@ function AddTools() {
 
 
 export default function BuildPage() {
+  const { id } = useParams();
+  const { isLoading, error, data } = useQuery("buildMap", async () => {
+    return axios.get("http://localhost:3000/api/maps?id=" + id, { withCredentials: true }).then(res => res.data[0]);
+  });
+
   const mapRef = useRef<HTMLDivElement>(null);
 
   const dispatch = useAppDispatch();
@@ -44,6 +51,10 @@ export default function BuildPage() {
   const [mapSize, setMapSize] = useState<[number, number]>([0, 0]);
 
   useEffect(() => {
+    if (!isLoading) {
+      dispatch(load(data));
+    }
+    
     const map = mapRef.current
     if (!map) return;
 
@@ -61,7 +72,12 @@ export default function BuildPage() {
     return () => {
       obs.disconnect();
     }
-  }, []);
+  }, [data]);
+
+
+  if (isLoading) {
+    return <div className="text-center mt-5">Loading...</div>
+  }
 
   return (<div className="h-screen overflow-hidden flex flex-col">
     {/* Topbar */}

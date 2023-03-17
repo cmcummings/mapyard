@@ -1,5 +1,6 @@
 import express from "express";
 import session from "express-session";
+import cors from "cors";
 import auth from "./api/auth";
 import maps from "./api/maps";
 import users from "./api/users";
@@ -14,13 +15,20 @@ declare module "express-session" {
 
 const app = express();
 
+app.use(cors({
+  credentials: true
+}));
+
 app.use(express.json());
 
 app.use(session({
   secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  store: MongoSessionStore
+  store: MongoSessionStore,
+  cookie: {
+    sameSite: "strict",
+  }
 }));
 
 const api = express();
