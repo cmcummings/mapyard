@@ -2,6 +2,7 @@ import { ReactNode, useState } from "react";
 import { IconButton } from "./generic";
 import { HiChevronDown } from "react-icons/hi2";
 import { Link } from "react-router-dom";
+import { useAppSelector } from "../redux/hooks";
 
 function UserDropdown() {
   const [open, setOpen] = useState(false);
@@ -22,6 +23,8 @@ function UserDropdown() {
 
 export default function Navbar({ left, mid }: { left?: ReactNode, mid?: ReactNode }) 
 {
+  const user = useAppSelector((state) => state.user.user);
+
   return (
     <div className="p-2 bg-mantle border-b border-b-surface2 flex flex-row">
       <div className="grow flex items-center flex-row gap-2">
@@ -31,8 +34,16 @@ export default function Navbar({ left, mid }: { left?: ReactNode, mid?: ReactNod
         {mid}
       </div>
       <div className="grow justify-end flex flex-row gap-2 items-center">
-        <h2>Username</h2>
-        <UserDropdown />
+        {
+          user 
+          ? <>
+            <h2>Username</h2>
+            <UserDropdown />
+          </>
+          : <>
+            <Link to="/login" className="hover:underline">Login</Link>
+          </>
+        }
       </div>
     </div>
   );

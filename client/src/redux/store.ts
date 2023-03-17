@@ -1,10 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 import mapReducer from "./map";
+import userReducer from "./user";
 
 
 const store = configureStore({
   reducer: {
-    map: mapReducer     
+    map: mapReducer,
+    user: userReducer
   }
 });
 

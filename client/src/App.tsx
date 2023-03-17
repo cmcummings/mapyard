@@ -1,6 +1,7 @@
 import { Provider } from "react-redux";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import BuildPage from "./pages/BuildPage";
+import LoginPage from "./pages/LoginPage";
 import SplashPage from "./pages/SplashPage";
 import UserPage from "./pages/UserPage";
 import store from "./redux/store";
@@ -17,6 +18,10 @@ const router = createBrowserRouter([
   {
     path: "user",
     element: <UserPage />
+  },
+  {
+    path: "login",
+    element: <LoginPage />
   }
 ]);
 
