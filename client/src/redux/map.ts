@@ -163,11 +163,79 @@ export const mapSlice = createSlice({
       if (index < 0 || index >= state.map.buildings.length) return;
       const building = state.map.buildings[index];
       state.map.buildings[index] = Object.assign(building, edits);
+    },
+    deleteNode: (state, action: PayloadAction<{ index: number }>) => {
+      const { index } = action.payload;
+      console.log("Deleting node", index);
+      const lastIdx = state.map.nodes.length - 1;
+      // Remove roads connecting to deleting node
+      state.map.roads = state.map.roads.filter(road => road.end !== index && road.start !== index); 
+      // Replace deleting node with last node
+      state.map.nodes[index] = state.map.nodes[lastIdx];
+      // Update roads connecting to last node with new position
+      for (let road of state.map.roads) {
+        if (road.end === lastIdx) {
+          road.end = index;
+        } else if(road.start === lastIdx) {
+          road.start = index; 
+        }
+      }
+      // Remove last node
+      state.map.nodes.pop();
+      // Delete nodes without any roads
+      for (let i = 0; i < state.map.nodes.length; i++) {
+        if (state.map.roads.find(road => road.start === i || road.end === i)) {
+          continue;
+        }
+
+        mapSlice.caseReducers.deleteNode(state, {
+          type: "deleteNode",
+          payload: {
+            index: i
+          }
+        });
+      }
+      // Unselect
+      state.selection = undefined;
+    },
+    deleteRoad: (state, action: PayloadAction<{ index: number }>) => {
+      function check(i: number) { 
+        if (i >= state.map.nodes.length) {
+          return;
+        }
+        if (state.map.roads.find(road => road.start === i || road.end === i)) {
+          return;
+        }
+
+        mapSlice.caseReducers.deleteNode(state, {
+          type: "deleteNode",
+          payload: {
+            index: i
+          }
+        });
+      }
+      const { index } = action.payload;
+      console.log("Deleting road", index);
+      const road = state.map.roads[index];
+      const start = road.start;
+      const end = road.end;
+      state.map.roads[index] = state.map.roads[state.map.roads.length-1];
+      state.map.roads.pop();
+      check(start);
+      check(end);
+      state.selection = undefined;
+    },
+    deleteBuilding: (state, action: PayloadAction<{ index: number }>) => {
+      const { index } = action.payload;
+      console.log("Deleting building", index);
+      state.map.buildings[index] = state.map.buildings[state.map.buildings.length-1];
+      state.map.buildings.pop();
+      state.selection = undefined;
     }
   }
 });
 
 const mapReducer = mapSlice.reducer;
 
-export const { setName, setMode, load, setHoverTarget, setSelection, editRoad, addRoad, addBuilding, extendRoad, editNode, editBuilding } = mapSlice.actions;
+export const { deleteNode, deleteBuilding, deleteRoad, setName, setMode, load, setHoverTarget, setSelection, editRoad, addRoad, addBuilding, extendRoad, editNode, editBuilding } = mapSlice.actions;
 export default mapReducer;

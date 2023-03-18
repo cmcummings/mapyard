@@ -14,8 +14,8 @@ function UserDropdown() {
     {open 
     ?
     <div className="z-10 absolute right-0 bg-mantle rounded-md border border-surface2 p-3 flex flex-col gap-3 text-right">
-      <Link to="/user" className="hover:underline whitespace-nowrap">View your maps</Link>
-      <a className="hover:underline hover:cursor-pointer" onClick={() => logout().then(() => window.location.href = "/login")}>Logout</a>      
+      <Link to="/" className="hover:underline whitespace-nowrap">View your maps</Link>
+      <a className="hover:underline hover:cursor-pointer" onClick={() => logout().then(() => window.location.href = "/")}>Logout</a>      
     </div> 
     : <></>}
   </div>);
@@ -40,7 +40,7 @@ export default function Navbar({ left, mid }: { left?: ReactNode, mid?: ReactNod
             <UserDropdown />
           </>
           : <>
-            <Link to="/login" className="hover:underline">Login</Link>
+            <Link to="/" className="hover:underline">Login</Link>
           </>
         }
       </div>

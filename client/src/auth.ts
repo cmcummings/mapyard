@@ -6,8 +6,9 @@ export async function register(username: string, password: string) {
   return axios.post("http://localhost:3000/api/auth/register", {
     username: username,
     password: password,
-  }).then(res => {
-    
+  }, {
+    withCredentials: true
+  }).then(res => {   
     localStorage.setItem("username", res.data.name);
   });
 }
@@ -19,7 +20,6 @@ export async function login(username: string, password: string) {
   }, { 
     withCredentials: true 
   }).then(res => {
-    console.log(res.data);
     localStorage.setItem("username", res.data.username);
   });
 }

@@ -1,3 +1,4 @@
+import { HiOutlineSave } from "react-icons/hi";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi2";
 import { useState, useRef, useEffect } from "react";   
 import { EditableText, IconButton } from "../components/generic";
@@ -39,14 +40,15 @@ function AddTools() {
 
 export default function BuildPage() {
   const { id } = useParams();
-  const { isLoading, error, data } = useQuery("buildMap", async () => {
+  const { isLoading, error, data, refetch } = useQuery("buildMap", async () => {
     return axios.get("http://localhost:3000/api/maps?id=" + id, { withCredentials: true }).then(res => res.data[0]);
-  });
+  }, { staleTime: Infinity });
 
   const mapRef = useRef<HTMLDivElement>(null);
 
   const dispatch = useAppDispatch();
   const mapName = useAppSelector((state) => state.map.name);
+  const map = useAppSelector((state) => state.map.map);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mapSize, setMapSize] = useState<[number, number]>([0, 0]);
 
@@ -74,38 +76,68 @@ export default function BuildPage() {
     }
   }, [data]);
 
+  useEffect(() => {
+    function alertUser(e: BeforeUnloadEvent) {
+      e.preventDefault();
+    }
+
+    window.addEventListener("beforeunload", alertUser)
+
+    return () => {
+      window.removeEventListener("beforeunload", alertUser);
+    }
+  }, []);
 
   if (isLoading) {
     return <div className="text-center mt-5">Loading...</div>
   }
 
-  return (<div className="h-screen overflow-hidden flex flex-col">
-    {/* Topbar */}
-    <Navbar left={<>
-        <IconButton onClick={() => setSidebarOpen(s => !s)}>
-          {sidebarOpen 
-            ? <HiChevronLeft className="w-6 h-6" />
-            : <HiChevronRight className="w-6 h-6" />}
-        </IconButton>
-        <p>Editor</p>
-    </>} mid={<>
-      <EditableText text={mapName} setText={(t) => dispatch(setName(t))} />
-    </>} />
-    <div className="flex flex-row grow"> 
-      {/* Sidebar */}
-      {sidebarOpen ?
-        <div className="w-72 bg-crust p-3 border-r border-r-surface2 divide-y divide-surface2 flex flex-col gap-4">
-          <div className="flex flex-col gap-2 justify-start">
-            <h3 className="text-xl">Add</h3>
-            <AddTools />
-          </div>
-          <Properties />
-        </div> 
-        : <></>}
-      {/* Map Canvas */}
-      <div className="relative grow overflow-hidden" ref={mapRef}>
-        <MapCanvas width={mapSize[0]} height={mapSize[1]} />         
+  function save() {
+    axios.post("http://localhost:3000/api/maps", {
+      id: id,
+      updates: {
+        name: mapName,
+        objects: map
+      }
+    }, { withCredentials: true }).then(() => {
+      refetch(); 
+      console.log("Successfully saved");
+    });
+  }
+
+  return (<> 
+    <div className="h-screen overflow-hidden flex flex-col">
+      {/* Topbar */}
+      <Navbar left={<>
+          <IconButton onClick={() => setSidebarOpen(s => !s)} className="flex flex-row gap-2">
+            {sidebarOpen 
+              ? <HiChevronLeft className="w-6 h-6" />
+              : <HiChevronRight className="w-6 h-6" />}
+            <p>Edit</p>
+          </IconButton>
+          <IconButton onClick={save} className="flex flex-row gap-2">
+            <HiOutlineSave className="w-6 h-6" />
+            <p>Save</p>
+          </IconButton>
+      </>} mid={<>
+        <EditableText text={mapName} setText={(t) => { dispatch(setName(t)) }} />
+      </>} />
+      <div className="flex flex-row grow"> 
+        {/* Sidebar */}
+        {sidebarOpen ?
+          <div className="w-72 bg-crust p-3 border-r border-r-surface2 divide-y divide-surface2 flex flex-col gap-4">
+            <div className="flex flex-col gap-2 justify-start">
+              <h3 className="text-xl">Add</h3>
+              <AddTools />
+            </div>
+            <Properties />
+          </div> 
+          : <></>}
+        {/* Map Canvas */}
+        <div className="relative grow overflow-hidden" ref={mapRef}>
+          <MapCanvas width={mapSize[0]} height={mapSize[1]} />         
+        </div>
       </div>
     </div>
-  </div>);
+  </>);
 }

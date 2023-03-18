@@ -35,7 +35,7 @@ maps.get("/", async (req, res) => {
 
 
 const zMapsPostBody = z.object({
-  id: z.string().refine(isObjectId),
+  id: z.string().refine(isObjectId).optional(),
   updates: z.object({
     name: z.string(),
     public: z.boolean(),
@@ -61,8 +61,8 @@ const zMapsPostBody = z.object({
           radius: z.number()
         }))
       ))
-    })
-  }).partial()
+    }).optional()
+  }).partial().optional()
 });
 
 maps.post("/", async (req, res) => {
@@ -79,17 +79,23 @@ maps.post("/", async (req, res) => {
 
   const body = pb.data;
 
-  let map = await Map.findOne({ _id: body.id });
-  if (map && map.creator.toString() !== req.session.user) {
-    res.status(401).send();
-    return;
-  }
+  let map;
+  if (body.id) {
+    map = await Map.findOne({ _id: body.id });
+    if (map && map.creator.toString() !== req.session.user) {
+      res.status(401).send();
+      return;
+    }
 
-  map = await Map.findOneAndUpdate(
-    { _id: body.id }, 
-    { creator: req.session.user, ...body.updates }, 
-    { upsert: true, returnDocument: "after" }
-  );
+    map = await Map.findOneAndUpdate(
+      { _id: body.id }, 
+      { creator: req.session.user, ...body.updates }, 
+      { returnDocument: "after" }
+    );
+  } else {
+    console.log("Creating map for user", req.session.user);
+    map = await Map.create({ creator: req.session.user });
+  }
 
   if (map) { 
     res.json(map.toJSON());

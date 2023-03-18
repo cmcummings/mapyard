@@ -63,6 +63,11 @@ const MapSchema = new Schema({
         required: true
       }
     },
+    default: {
+      nodes: [],
+      roads: [],
+      buildings: []
+    },
     required: true,
   }
 });

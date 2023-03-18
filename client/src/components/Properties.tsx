@@ -1,6 +1,6 @@
 import { ChangeEvent, FormEvent, HTMLAttributes } from "react";
 import { useAppSelector, useAppDispatch } from "../redux/hooks";
-import { BuildingEdits, editBuilding, editRoad, INode, IBuilding, IRoad, RoadDirection, RoadEdits } from "../redux/map";
+import { BuildingEdits, editBuilding, editRoad, INode, IBuilding, IRoad, RoadDirection, RoadEdits, deleteNode, deleteRoad, deleteBuilding } from "../redux/map";
 import { degToRad, parseIntSafe, radToDeg } from "../util";
 import { InputHTMLAttributes, ReactNode } from "react";
 
@@ -76,6 +76,7 @@ function BuildingFields({ id, building }: BuildingFieldsProps) {
       <FieldInput type="number" value={building.y.toString()} onChange={edit((v) => ({ y: parseIntSafe(v) }))}/>
     </Field>
     {shapeFields}
+    <button onClick={() => dispatch(deleteBuilding({ index: id }))} className="p-2 bg-red text-base self-start rounded-md hover:bg-red/80">Delete</button>
   </FieldsContainer>
 }
 
@@ -104,6 +105,7 @@ function RoadFields({ id, road }: { id: number, road: IRoad }) {
       <Field label="Label">
         <FieldInput type="text" value={road.label || ""} onChange={edit((v) => ({ label: v }))} />
       </Field>
+      <button onClick={() => dispatch(deleteRoad({ index: id }))} className="p-2 bg-red text-base self-start rounded-md hover:bg-red/80">Delete</button>
     </FieldsContainer>
   );
 }
@@ -129,6 +131,7 @@ function NodeFields({ id, node }: { id: number, node: INode }) {
       <Field label="Position Y">
         <FieldInput type="number" value={node.y.toString()} onChange={edit((v) => ({ y: parseIntSafe(v) }))} />
       </Field>
+      <button onClick={() => dispatch(deleteNode({ index: id }))} className="p-2 bg-red text-base self-start rounded-md hover:bg-red/80">Delete</button>
     </FieldsContainer>
   );
 }
@@ -154,7 +157,7 @@ export function Properties() {
 
   return (
     <div className="flex flex-col gap-2 justify-start pt-2">
-      {fields} 
+      {fields}
     </div>
   );
 }

@@ -1,29 +1,20 @@
 import { QueryClient, QueryClientProvider } from "react-query";
 import { Provider } from "react-redux";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import AuthPage from "./pages/AuthPage";
 import BuildPage from "./pages/BuildPage";
-import LoginPage from "./pages/LoginPage";
-import SplashPage from "./pages/SplashPage";
 import UserPage from "./pages/UserPage";
 import store from "./redux/store";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <SplashPage />
+    element:  localStorage.getItem("username") ? <UserPage /> : <AuthPage />
   },
   {
     path: "build/:id",
     element: <BuildPage />
   },
-  {
-    path: "user",
-    element: <UserPage />
-  },
-  {
-    path: "login",
-    element: <LoginPage />
-  }
 ]);
 
 const queryClient = new QueryClient();
