@@ -1,11 +1,10 @@
 import express from "express";
 import session from "express-session";
-import cors from "cors";
 import auth from "./api/auth";
 import maps from "./api/maps";
 import users from "./api/users";
 import { MongoSessionStore } from "./db";
-import { PORT, SESSION_SECRET } from "./env";
+import { DEV, PORT, SESSION_SECRET } from "./env";
 import * as path from "path";
 
 declare module "express-session" {
@@ -16,9 +15,12 @@ declare module "express-session" {
 
 const app = express();
 
-app.use(cors({
-  credentials: true
-}));
+if (DEV) {
+  const cors = require("cors");
+  app.use(cors({
+    credentials: true
+  }));
+}
 
 app.use(express.json());
 
@@ -38,9 +40,9 @@ api.use("/maps", maps);
 api.use("/users", users);
 app.use("/api", api);
 
-app.use(express.static(path.join(__dirname, "../../client/dist")));
+app.use(express.static(path.join(__dirname, "../client/dist")));
 app.use("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../client/dist/index.html"));
+  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
 });
 
 app.listen(PORT, () => {
