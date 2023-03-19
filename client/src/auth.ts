@@ -3,7 +3,7 @@ import axios from "axios";
 export const getUsername = () => localStorage.getItem("username");
 
 export async function register(username: string, password: string) {
-  return axios.post("http://localhost:3000/api/auth/register", {
+  return axios.post("/api/auth/register", {
     username: username,
     password: password,
   }, {
@@ -14,7 +14,7 @@ export async function register(username: string, password: string) {
 }
 
 export async function login(username: string, password: string) {
-  return axios.post("http://localhost:3000/api/auth/login", {
+  return axios.post("/api/auth/login", {
     username: username,
     password: password
   }, { 
@@ -25,7 +25,7 @@ export async function login(username: string, password: string) {
 }
 
 export async function logout() {
-  return axios.post("http://localhost:3000/api/auth/logout", {}, { withCredentials: true }).then(() => {
+  return axios.post("/api/auth/logout", {}, { withCredentials: true }).then(() => {
     localStorage.removeItem("username");
   });
 }

@@ -41,7 +41,7 @@ function AddTools() {
 export default function BuildPage() {
   const { id } = useParams();
   const { isLoading, error, data, refetch } = useQuery("buildMap", async () => {
-    return axios.get("http://localhost:3000/api/maps?id=" + id, { withCredentials: true }).then(res => res.data[0]);
+    return axios.get("/api/maps?id=" + id, { withCredentials: true }).then(res => res.data[0]);
   }, { staleTime: Infinity });
 
   const mapRef = useRef<HTMLDivElement>(null);
@@ -51,6 +51,22 @@ export default function BuildPage() {
   const map = useAppSelector((state) => state.map.map);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mapSize, setMapSize] = useState<[number, number]>([0, 0]);
+
+  const [saving, setSaving] = useState(false);
+  function save() {
+    setSaving(true);
+    axios.post("/api/maps", {
+      id: id,
+      updates: {
+        name: mapName,
+        objects: map
+      }
+    }, { withCredentials: true }).then(() => {
+      refetch(); 
+      console.log("Successfully saved");
+      setSaving(false);
+    });
+  }
 
   useEffect(() => {
     if (!isLoading) {
@@ -92,19 +108,6 @@ export default function BuildPage() {
     return <div className="text-center mt-5">Loading...</div>
   }
 
-  function save() {
-    axios.post("http://localhost:3000/api/maps", {
-      id: id,
-      updates: {
-        name: mapName,
-        objects: map
-      }
-    }, { withCredentials: true }).then(() => {
-      refetch(); 
-      console.log("Successfully saved");
-    });
-  }
-
   return (<> 
     <div className="h-screen overflow-hidden flex flex-col">
       {/* Topbar */}
@@ -117,7 +120,7 @@ export default function BuildPage() {
           </IconButton>
           <IconButton onClick={save} className="flex flex-row gap-2">
             <HiOutlineSave className="w-6 h-6" />
-            <p>Save</p>
+            <p>{saving ? "Saving..." : "Save"}</p>
           </IconButton>
       </>} mid={<>
         <EditableText text={mapName} setText={(t) => { dispatch(setName(t)) }} />

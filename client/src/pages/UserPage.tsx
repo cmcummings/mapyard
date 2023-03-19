@@ -7,11 +7,11 @@ import Navbar from "../components/Navbar";
 
 export default function UserPage() {
   const { isLoading, error, data } = useQuery("userMaps", async () => {
-    return axios.get("http://localhost:3000/api/maps", { withCredentials: true }).then(res => res.data);
+    return axios.get("/api/maps", { withCredentials: true }).then(res => res.data);
   });
 
   function createMap() {
-    axios.post("http://localhost:3000/api/maps", {}, { withCredentials: true }).then(res => {
+    axios.post("/api/maps", {}, { withCredentials: true }).then(res => {
       window.location.href = "/build/" + res.data._id;
     }).catch(err => console.error(err.message));
   }
