@@ -316,7 +316,7 @@ export default function MapCanvas({ width, height }: { width: number, height: nu
    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    map.draw(ctx, hoverTarget); 
+    map.draw(ctx, hoverTarget);
 
     function mouseMoveHandler(e: MouseEvent) {
       const x = e.offsetX;
@@ -394,7 +394,7 @@ export default function MapCanvas({ width, height }: { width: number, height: nu
       }
     }
 
-    function mouseUpHandler(e: MouseEvent) {
+    function mouseUpHandler() {
       setHolding(false); 
     }
 
@@ -407,7 +407,7 @@ export default function MapCanvas({ width, height }: { width: number, height: nu
       canvas.removeEventListener("mousedown", mouseDownHandler);
       canvas.removeEventListener("mouseup", mouseUpHandler);
     }
-  }, [map, hoverTarget, holding, width, height]);
+  }, [_map, hoverTarget, holding, width, height]);
 
   return (<>
       <div className="absolute top-2 left-2 flex flex-col gap-2">

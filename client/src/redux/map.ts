@@ -91,13 +91,16 @@ export const mapSlice = createSlice({
   name: "map",
   initialState, 
   reducers: {
+    reset: () => initialState,
     load: (state, action: PayloadAction<LoadMap>) => {
+      state = {...initialState};
       const p = action.payload;
       state.name = p.name;
       state.map = p.objects;
       state.addMode = undefined;
       state.selection = undefined
       state.hoverTarget = undefined;
+      return state;
     },
     setName: (state, action: PayloadAction<string>) => {
       state.name = action.payload;
@@ -239,5 +242,5 @@ export const mapSlice = createSlice({
 
 const mapReducer = mapSlice.reducer;
 
-export const { deleteNode, deleteBuilding, deleteRoad, setName, setMode, load, setHoverTarget, setSelection, editRoad, addRoad, addBuilding, extendRoad, editNode, editBuilding } = mapSlice.actions;
+export const { deleteNode, deleteBuilding, reset, deleteRoad, setName, setMode, load, setHoverTarget, setSelection, editRoad, addRoad, addBuilding, extendRoad, editNode, editBuilding } = mapSlice.actions;
 export default mapReducer;

@@ -5,7 +5,7 @@ import { EditableText, IconButton } from "../components/generic";
 import MapCanvas from "../components/MapCanvas";
 import { Properties } from "../components/Properties";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { AddMode, load, setMode, setName } from "../redux/map";
+import { AddMode, load, reset, setMode, setName } from "../redux/map";
 import Navbar from "../components/Navbar";
 import axios from "axios";
 import { useQuery } from "react-query";
@@ -40,9 +40,19 @@ function AddTools() {
 
 export default function BuildPage() {
   const { id } = useParams();
-  const { isLoading, error, data, refetch } = useQuery("buildMap", async () => {
-    return axios.get("/api/maps?id=" + id, { withCredentials: true }).then(res => res.data[0]);
-  }, { staleTime: Infinity });
+ 
+  const [loading, setLoading] = useState(false);
+
+  function fetchMapData() {
+    setLoading(true);
+    dispatch(reset());
+    axios.get("/api/maps?id=" + id, { withCredentials: true }).then(res => {
+      dispatch(load(res.data[0]));
+      setLoading(false);
+    }).catch(console.error);
+  }
+
+  useEffect(fetchMapData, [id]);
 
   const mapRef = useRef<HTMLDivElement>(null);
 
@@ -62,17 +72,12 @@ export default function BuildPage() {
         objects: map
       }
     }, { withCredentials: true }).then(() => {
-      refetch(); 
       console.log("Successfully saved");
       setSaving(false);
     });
   }
 
   useEffect(() => {
-    if (!isLoading) {
-      dispatch(load(data));
-    }
-    
     const map = mapRef.current
     if (!map) return;
 
@@ -86,13 +91,14 @@ export default function BuildPage() {
 
     const obs = new ResizeObserver(canvasResizeHandler);
     obs.observe(map);
-    
+
     return () => {
       obs.disconnect();
     }
-  }, [data]);
+  }, []);
 
   useEffect(() => {
+    
     function alertUser(e: BeforeUnloadEvent) {
       e.preventDefault();
     }
@@ -104,8 +110,10 @@ export default function BuildPage() {
     }
   }, []);
 
-  if (isLoading) {
-    return <div className="text-center mt-5">Loading...</div>
+  if (loading) {
+    return <div className="flex justify-center mt-3">
+      <p>Loading...</p>
+    </div>
   }
 
   return (<> 
