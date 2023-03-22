@@ -9,7 +9,7 @@ export async function register(username: string, password: string) {
   }, {
     withCredentials: true
   }).then(res => {   
-    localStorage.setItem("username", res.data.name);
+    localStorage.setItem("username", res.data.username);
   });
 }
 

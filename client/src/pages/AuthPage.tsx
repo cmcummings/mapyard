@@ -10,12 +10,20 @@ interface RegisterFormData {
 function RegisterForm() {
   const { register, handleSubmit } = useForm<RegisterFormData>();
 
+  const [error, setError] = useState<string | null>(null);
+
   const onSubmit = handleSubmit(data => {
     registerAccount(data.username, data.password).then(() => {
       window.location.href = "/"
     }).catch(err => {
-      console.error(err);
-    });
+        if (err.response) {
+          if (err.response.data.message) {
+            setError(err.response.data.message);
+          } else {
+            setError("An unknown error occurred.");
+          }
+        }
+      });
   });
 
   return (
@@ -26,6 +34,11 @@ function RegisterForm() {
       <label>Password</label>
       <input className="p-2 bg-crust" type="password" {...register("password", { required: true })} />
       <button type="submit" className="bg-teal hover:bg-teal/80 text-base p-2 rounded-md">Register</button>
+      {
+        error
+        ? <p className="text-red">{error}</p>
+        : <></>
+      }
     </form>
   )
 }
@@ -39,11 +52,19 @@ interface LoginFormData {
 function LoginForm() {
   const { register, handleSubmit } = useForm<LoginFormData>();
 
+  const [error, setError] = useState<string | null>(null);
+
   const onSubmit = handleSubmit(data => {
     login(data.username, data.password).then(() => {
       window.location.href = "/"
     }).catch(err => {
-      console.error(err);
+        if (err.response) {
+          if (err.response.data.message) {
+            setError(err.response.data.message);
+          } else {
+            setError("An unknown error occurred.");
+          }
+        }
     });
   });
 
@@ -56,6 +77,11 @@ function LoginForm() {
       <input className="p-2 bg-crust" type="password" {...register("password", { required: true, value: "password" })} />
       <button type="submit" className="bg-teal hover:bg-teal/80 text-base p-2 rounded-md">Log in</button>
       <p className="w-56">The login form has been automatically filled with a test user you are free to use. (connor/password)</p>
+      {
+        error
+        ? <p className="text-red">{error}</p>
+        : <></>
+      }
     </form>
   )
 }

@@ -13,7 +13,7 @@ const zRegisterBody = z.object({
 auth.post("/register", async (req, res, next) => {
   const pb = zRegisterBody.safeParse(req.body);
   if (!pb.success) {
-    res.status(400).json({ message: "Invalid request body" });
+    res.status(400).json({ message: "Invalid request body." });
     return;
   }
 
@@ -23,7 +23,7 @@ auth.post("/register", async (req, res, next) => {
   const pwHash = bcrypt.hashSync(body.password, salt);
 
   if (await User.exists({ name: body.username })) {
-    res.status(409).json({ message: "User already exists" });
+    res.status(409).json({ message: "User already exists." });
     return;
   }
 
@@ -57,7 +57,7 @@ const zLoginBody = z.object({
 auth.post("/login", async (req, res, next) => {
   const pb = zLoginBody.safeParse(req.body);
   if (!pb.success) {
-    res.status(400).send();
+    res.status(400).json({ message: "Invalid request body." });
     return;
   }   
 
@@ -66,7 +66,7 @@ auth.post("/login", async (req, res, next) => {
   const user = await User.findOne({ name: body.username });
 
   if (!user || !bcrypt.compareSync(body.password, user.password)) {
-    res.status(401).send();
+    res.status(401).json({ message: "Login failed." });
     return;
   }
   
