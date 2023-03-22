@@ -157,6 +157,7 @@ class Building implements Drawable, Hoverable {
   static FILL_COLOR = "#ccd0da";
   static HOVER_STROKE_COLOR = "#04a5e522";
   static HOVER_FILL_COLOR = "#04a5e533";
+  static LABEL_COLOR = "#767985";
 
   id: number
   building: IBuilding
@@ -190,6 +191,12 @@ class Building implements Drawable, Hoverable {
     this.transform(ctx);
     ctx.fill(this.path);
     ctx.stroke(this.path);
+    ctx.textAlign = "center";
+    if (this.building.label) {
+      ctx.fillStyle = Building.LABEL_COLOR;
+      ctx.font = "14px sans";
+      ctx.fillText(this.building.label, this.building.x, this.building.y + 5);
+    }
     ctx.resetTransform();
   }
 

@@ -49,7 +49,8 @@ const zMapsPostBody = z.object({
       })),
       buildings: z.array(z.object({
         x: z.number(),
-        y: z.number()
+        y: z.number(),
+        label: z.string().optional()
       }).and(
         z.object({
           type: z.literal("rectangular"),

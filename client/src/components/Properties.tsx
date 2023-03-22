@@ -75,6 +75,9 @@ function BuildingFields({ id, building }: BuildingFieldsProps) {
     <Field label="Y Position">
       <FieldInput type="number" value={building.y.toString()} onChange={edit((v) => ({ y: parseIntSafe(v) }))}/>
     </Field>
+    <Field label="Label">
+      <FieldInput type="text" value={building.label ? building.label.toString() : ""} onChange={edit((v) => ({ label: v }))} />
+    </Field>
     {shapeFields}
     <button onClick={() => dispatch(deleteBuilding({ index: id }))} className="p-2 bg-red text-base self-start rounded-md hover:bg-red/80">Delete</button>
   </FieldsContainer>

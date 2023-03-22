@@ -17,7 +17,8 @@ export interface IRoad {
 
 export type IBuilding = {
   x: number,
-  y: number
+  y: number,
+  label?: string
 } & ({
   type: "rectangular",
   width: number,
@@ -74,6 +75,7 @@ export interface RoadEdits {
 export interface BuildingEdits {
   x?: number,
   y?: number,
+  label?: string,
   rotation?: number,
   width?: number,
   height?: number,
