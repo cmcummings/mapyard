@@ -14,7 +14,7 @@ Register for an account and create a new map. Then, use the tools to add roads a
 ```
 MONGO_CONN_STRING: MongoDB connection string
 PORT: the port to run the server on
-SESSION_SECRETthe secret used for Express sessions
+SESSION_SECRET: the secret used for Express sessions
 ```
 
 2. Install the packages for both client and server.
