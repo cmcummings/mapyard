@@ -5,14 +5,24 @@ Register for an account and create a new map. Then, use the tools to add roads a
 
 ## Technologies
 - MERN (Mongo, Express, React, Node)
-- HTML, CSS, JavaScript (TypeScript)
+- HTML, CSS (Tailwind), JavaScript (TypeScript)
 
 ## Usage
 
 ### Development
-1. Setup `server/.env`:
-    - `MONGO_CONN_STRING`: MongoDB connection string
-    - `PORT`: the port to run the server on
-    - `SESSION_SECRET`: the secret used for Express sessions
-1. `npm install` the packages for both client and server.
-2. `npm run dev` to run the Vite frontend development server and the Express backend.
+1. Setup environment (i.e. `.env`):
+```
+MONGO_CONN_STRING: MongoDB connection string
+PORT: the port to run the server on
+SESSION_SECRETthe secret used for Express sessions
+```
+
+2. Install the packages for both client and server.
+```
+npm install
+```
+
+3. Run the Vite frontend development server and the Express backend.
+```
+npm run dev
+```
